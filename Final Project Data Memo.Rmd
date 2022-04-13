@@ -1,6 +1,6 @@
 ---
 title: "Final Project Data Memo"
-author: "Louis Yang"
+author: "Louis Yang, Will Cichowski, Matthew Lorenz, Olivia Lee"
 date: '2022-04-12'
 output: html_document
 ---
@@ -25,7 +25,7 @@ Below is a skim of the dataset in its raw form, no cleaning performed on it yet.
 
 <br>
 
-```{r, echo = FALSE, message = FALSE}
+```{r, echo = FALSE, message = FALSE, warning=FALSE}
 library(skimr)
 library(readr)
 tinder <- read_csv('data/unprocessed/Tinder Millennial Match Rate Dataset.csv')
@@ -42,10 +42,18 @@ It consists of a questionnaire that was answered by millennial aged people from 
 
 <br>
 
-
 ## Potential Research Questions
+<br>
+<br>
+
+There are a variety of different research questions we can entertain given this dataset. The first, and most interesting to our group is: does usage lead to success? We can also model all of the variables to see what leads to a successful relationship. We can also build different models to see if the medium of usage leads to more success or less success in a relationship. I believe most of our models would be using forms of binary classification outcomes in order to measure success. Therefore, our metrics could be accuracy, precision, recall, and f1-measurement. I think f1 is probably the best metric to use in our case because of the imbalance in the dataset (over 70% have not had successful relationships).
+
 
 ## Potential Difficulties
+<br>
+<br>
+The most obvious difficulty given this data set is the lack of complexity. The data set itself only has ~500 observations, and the only contains 6 usable variables. This will limit us in terms of cross validation, because if we created 10 folds out of 80% of our training data, we only are using 40 observations to train. This could result in each fold generating drastically different values. Further, having 6 usable variables limits our feature engineering. There is simply not that many combinations of new variables we can make. The most worrisome issue is the confounding in the data. For example, if someone has never used variable, obviously they never would have gotten a successful relationship from it. Moving forward, I am unsure if this is a dataset we want to use. 
+
 
 
 
