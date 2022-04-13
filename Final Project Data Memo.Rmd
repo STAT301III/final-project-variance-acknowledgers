@@ -11,7 +11,37 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Project Timeline
 
+<br>
+
+At this point in the project, our group, the Variance Acknowledgers, have settled on our dataset, which we will go in more depth about later in this memo. At this moment, we have been able to successfully read in our data to R, which is in a csv format. In the coming couple of weeks, we will be performing an EDA on this dataset, getting to know it better, and beginning to think more about the direction of our final project. After that, once we have met to talk about direction, we will begin the coding-heavy portions of our project and perform deeper analysis throughout the rest of the quarter.
+
+<br>
+
 ## Overview of Dataset
+
+<br>
+
+Below is a skim of the dataset in its raw form, no cleaning performed on it yet.
+
+<br>
+
+```{r, echo = FALSE, message = FALSE}
+library(skimr)
+library(readr)
+tinder <- read_csv('data/unprocessed/Tinder Millennial Match Rate Dataset.csv')
+skim_without_charts(tinder)
+```
+
+<br>
+
+This data is fairly small, with only 453 observations. We found it on Kaggle in a csv format. There is no missingness to the data.
+
+<br>
+
+It consists of a questionnaire that was answered by millennial aged people from various universities about their usage of the popular dating app, Tinder. Some of these questions, which are the columns of each dataset, are medium of use, such as mobile or web browser (currently Segment Type column), Name of the university (currently Segment description), whether or not they use Tinder (Answer), a count of how many matches they have gotten on Tinder, the percentage of matches they get when they swipe right, and a categorical variable of whether or not they succeeded in finding a relationship on Tinder. There is also a unique ID column for each observation. Most likely, we will be intending to predict an outcome variable of whether or not they achieved a relationship from Tinder. 
+
+<br>
+
 
 ## Potential Research Questions
 
