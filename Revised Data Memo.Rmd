@@ -1,0 +1,56 @@
+---
+title: "Revised Data Memo"
+author: "Louis Yang, Will Cichowski, Matthew Lorenz, Olivia Lee"
+date: '2022-04-25'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Project Timeline
+
+<br>
+
+At this point in the project, our group, the Variance Acknowledgers, have settled on our dataset, which we will go in more depth about later in this memo. At this moment, we have been able to successfully read in our data to R, which is in a csv format. In the coming couple of weeks, we will be performing an EDA on this dataset, getting to know it better, and beginning to think more about the direction of our final project. After that, once we have met to talk about direction, we will begin the coding-heavy portions of our project and perform deeper analysis throughout the rest of the quarter.
+
+<br>
+
+## Overview of Dataset
+
+<br>
+
+Below is a skim of the dataset in its raw form, no cleaning performed on it yet.
+
+<br>
+
+```{r, echo = FALSE, message = FALSE, warning=FALSE}
+library(skimr)
+library(readr)
+companies <- read_csv('data/unprocessed/Unicorn_Companies.csv')
+skim_without_charts(companies)
+```
+
+<br>
+
+This data is fairly small, with just over 1000 observations. We found it on Kaggle in a csv format. There is no missingness to the data.
+
+<br>
+
+This dataset has details on various unicorn companies, a private company or startup that has a valuation over 1 billion. Former unicorn companies in clude Facebook, Airbnb, and Google. Being a "unicorn company" has value because it is so rare: of software startups in the 2000s, only 0.07% reached the 1 billion valuation mark. It signals a company that has grown quickly and one that is headed for success. This dataset has information of the 1000 unicorn companies in the world, as of March 2022. It has variables like current valuation, data created, country, city, industry, financial stage and more. 
+
+<br>
+
+## Potential Research Questions
+<br>
+
+We think there are two main research question that can be explored. The first: given various characteristics of these companies, what is their valuation? This will entail a regression based approach. The second: what stage of financing is the startup in given various characteristics about the company. This would be a classification model. 
+
+## Potential Difficulties
+<br>
+
+The most difficult part of this project will be determining the correct method to classify predictors. The best way to explain this is by looking at the "select investors" column. Each startup has multiple investors and there are investment firms that have invested in mulitple companies in this dataset. We must determine whether we will one hot dummy code all companies, meaning that there will be lots of columns created for each investment firm that appears in the dataset. There is also the approach of categorizing investment firms by size so that we could one hot code big, medium, and small columns. The same logic applies to countries, cities, industries. 
+
+
+
