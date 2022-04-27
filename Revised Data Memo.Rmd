@@ -52,5 +52,8 @@ We think there are two main research question that can be explored. The first: g
 
 The most difficult part of this project will be determining the correct method to classify predictors. The best way to explain this is by looking at the "select investors" column. Each startup has multiple investors and there are investment firms that have invested in mulitple companies in this dataset. We must determine whether we will one hot dummy code all companies, meaning that there will be lots of columns created for each investment firm that appears in the dataset. There is also the approach of categorizing investment firms by size so that we could one hot code big, medium, and small columns. The same logic applies to countries, cities, industries. 
 
+## Github Repo Link
+
+[https://github.com/STAT301III/final-project-variance-acknowledgers.git](https://github.com/STAT301III/final-project-variance-acknowledgers.git){target="_blank"}
 
 
