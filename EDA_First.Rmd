@@ -1,0 +1,102 @@
+---
+title: "Initial EDA"
+author: "Louis Yang"
+date: '2022-05-02'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
+#load in packages needed for EDA
+library(readr)
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(skimr)
+library(janitor)
+library(corrplot)
+library(stringr)
+library(lubridate)
+```
+
+## Introduction
+
+This data was found on Kaggle (https://www.kaggle.com/datasets/deepcontractor/unicorn-companies-dataset). 
+
+This dataset has details on various unicorn companies, a private company or startup that has a valuation over 1 billion. Former unicorn companies in clude Facebook, Airbnb, and Google. Being a "unicorn company" has value because it is so rare: of software startups in the 2000s, only 0.07% reached the 1 billion valuation mark. It signals a company that has grown quickly and one that is headed for success. This dataset has information of the 1000 unicorn companies in the world, as of March 2022. It has variables like current valuation, data created, country, city, industry, financial stage and more. 
+
+We think there are three main research question that can be explored. The first: given various characteristics of these companies, what is their valuation? This will entail a regression based approach. The second: what stage of financing is the startup in given various characteristics about the company. This would be a classification model. The third: what industry is the startup in?
+
+Number of observations: 762
+Number of features: 91
+
+Missingness check:
+
+```{r}
+#read in raw data
+uni <- read.csv('data/unprocessed/Unicorn_Companies.csv')
+
+#Do a quick skim of the data
+skim_without_charts(uni)
+```
+
+
+Here, we can see that there is no missingness in the data at all, but upon inspecting the data that is because any missing values contain a character "None" in lieu of an NA.
+
+## Data Cleaning Process
+```{r}
+#Let's first turn the numerical columns that are currently characters to numerical:
+uni_clean <- uni %>%
+  mutate(valuation = as.numeric(extract_numeric(Valuation...B.)) * 1000000000,
+         date_joined= extract_numeric(str_sub(Date.Joined, start= -4)),
+         investor_count = extract_numeric(Investors.Count),
+         deal_terms = extract_numeric(Deal.Terms),
+         portfolio_exits = extract_numeric(Portfolio.Exits),
+         total_raised = extract_numeric(Total.Raised) * 1000000000,
+         ) %>% 
+  select(-c(Date.Joined, Investors.Count, Valuation...B., Deal.Terms, Portfolio.Exits, Total.Raised)) %>%
+  clean_names()
+
+# taking investors out, then pivoting wider//onehotting
+uni_clean <-
+  uni_clean %>% 
+  mutate(select_inverstors = str_replace(select_inverstors, ",", "|"),
+         select_inverstors = str_replace(select_inverstors, ",", "|"),
+         select_inverstors = str_replace(select_inverstors, ",", "|"),
+         select_inverstors = str_replace(select_inverstors, ",", "|"),
+         select_inverstors = str_remove_all(select_inverstors, ' '),
+         select_inverstors = str_to_lower(select_inverstors)) %>% 
+  separate_rows(select_inverstors, sep = "\\|")
+
+# checking counts of investors
+one_hot_investors <- uni_clean %>% 
+  group_by(select_inverstors) %>% 
+  summarise(counts = n()) %>% 
+  arrange(desc(counts)) %>% 
+  filter(counts > 5)
+
+uni_clean <- 
+  uni_clean %>% filter(select_inverstors %in% one_hot_investors$select_inverstors)
+
+# now pivot wider
+uni_clean <- uni_clean[-c(1063, 367), ]
+uni_clean <- uni_clean %>% 
+  mutate(value = 1) %>% 
+  spread(select_inverstors, value, fill = 0)
+
+
+#With total raised, usually follows $100.4M type of structure but sometimes is None
+
+# function to fix data
+
+
+skim_without_charts(uni_clean)
+```
+
+## Essential Findings
+
+
+
