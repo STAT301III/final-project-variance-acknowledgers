@@ -113,6 +113,6 @@ nlp_practice <- data.frame(matrix(unlist(uni_clean$select_inverstors),
                        "technology", "development", "gloval", "holdings",
                        "managemeny", "global", "financial", "company",
                        "holding", "and", "endeavors", "finance",
-                       "invest", "I")
+                       "invest", "I", "growth")
                                  )) %>%
   table()
