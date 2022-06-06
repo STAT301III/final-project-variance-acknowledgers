@@ -30,11 +30,52 @@ uni_clean <- uni %>%
          deal_terms = extract_numeric(Deal.Terms),
          portfolio_exits = extract_numeric(Portfolio.Exits),
          total_raised = extract_numeric(Total.Raised) * 1000000000,
-         Select.Inverstors = str_split(Select.Inverstors, ",")
+         Select.Inverstors = str_split(Select.Inverstors, ", ")
   ) %>%
   unnest(cols = c(Select.Inverstors)) %>% 
   select(-c(Date.Joined, Investors.Count, Valuation...B., Deal.Terms, Portfolio.Exits, Total.Raised)) %>%
   clean_names()
+
+# put in dummy column
+uni_clean <- data.frame(append(uni_clean, c(x1="1"), after=5))
+
+# pivot wide
+uni_clean <- uni_clean %>% 
+  group_by(company, country, city, industry, founded_year, financial_stage, valuation, date_joined, investor_count, deal_terms, portfolio_exits, total_raised, select_inverstors) %>%
+  mutate(rn = row_number()) %>% 
+  pivot_wider(
+    names_from = select_inverstors,
+    values_from = x1
+  ) 
+
+# put in 0s
+uni_clean <- uni_clean %>% 
+  mutate_all(~replace(., is.na(.), 0)) %>% 
+  select(-rn)
+
+
+# EDA for filtering investors
+uni_clean_2 <- uni %>%
+  mutate(valuation = as.numeric(extract_numeric(Valuation...B.)) * 1000000000,
+         date_joined= extract_numeric(str_sub(Date.Joined, start= -4)),
+         investor_count = extract_numeric(Investors.Count),
+         deal_terms = extract_numeric(Deal.Terms),
+         portfolio_exits = extract_numeric(Portfolio.Exits),
+         total_raised = extract_numeric(Total.Raised) * 1000000000,
+         Select.Inverstors = str_split(Select.Inverstors, ", ")
+  ) %>%
+  unnest(cols = c(Select.Inverstors)) %>% 
+  select(-c(Date.Joined, Investors.Count, Valuation...B., Deal.Terms, Portfolio.Exits, Total.Raised)) %>%
+  clean_names()
+
+all_investors <- unique(uni_clean_2[c("select_inverstors")])
+
+companies_greater_than_10 <- uni_clean_2 %>%
+  group_by(select_inverstors) %>%
+  summarise(n = n()) %>% 
+  subset(n >= 10)
+
+list_of_companies_for_one_hot <- list(companies_greater_than_10$select_inverstors)
 
 # Experiments :
 
@@ -93,11 +134,18 @@ exp_1_test <- testing(exp_1_split)
 
 exp_1_folds <- vfold_cv(exp_1_train, strata = valuation)
 
+save(exp_1_train, file = "data/processed/exp_1_train.rda")
+save(exp_1_test, file = "data/processed/exp_1_test.rda")
+save(exp_1_folds, file = "data/processed/exp_1_folds.rda")
+
+
 # recipe with no natural language processing
 recipe_no_nlp <- recipe(valuation ~ ., data = exp_1_train) %>% 
   step_rm(select_inverstors, company, portfolio_exits) %>% 
   step_dummy(all_nominal_predictors()) %>% 
   step_normalize(all_numeric_predictors())
+
+save(recipe_no_nlp, file = "recipes/recipe_no_nlp.rds")
   
 # recipe with NLP
 # changing to one hot dataframe
