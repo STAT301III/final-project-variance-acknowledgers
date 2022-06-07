@@ -218,3 +218,17 @@ From this initial exploratory data analysis, we have achieved a deeper understan
 Moving forward, some variables we are paying close attention to are the investor count, country of origin, and year founded due to the distributions seen above. We saw a slight correlation between a company's valuation and the number of investors, but it is unclear whether that correlation is significant due to the clustering behavior of the data. Additionally, our bivariate predictor analysis yielded very low correlation, which is promising for our eventual model because we seek exogenous variables for prediction.
 
 # Developing Models
+
+## Natural Language Processing
+
+Natural Language Processing (NLP) is the method of transforming text data into usable representations for modeling. Text data proves challenging to work with because of the multitude of elements involved in linguistics, with information ranging from phonetic, the individual breakdown of sounds, to pragmatic, how language is used in context.
+
+source: https://smltar.com
+
+Because our data includes text information, specifically 13 character-type variables, we wanted to explore using NLP to see if it increases the efficacy of our model's predictions. However, NLP might not be necessary if we decide that converting the character variables to factors is as effective, especially since factor variables are more familiar and are therefore easier for us to model.
+
+With NLP, it is important for us to consider our method of tokenization, which is the process of separating text-based variables into smaller units, like separating a sentence into a vector of words. NLP and tokenization are most relevant in the select investors variable.
+
+Since our target variable is a company's valuation, it is crucial that we treat the investors variable intentionally. From general knowledge, we know there is a correlation between which investors decide a company is worth devoting resources to and the eventual success of a company. That is, experienced investors likely know the criteria for a likely successful company and decide to invest based on their in-house standards.
+
+Upon our initial look at the data, we noticed that certain funds of the same name were categorized as different investor groups because of small syntactical differences. To address this, some form of NLP is necessary.

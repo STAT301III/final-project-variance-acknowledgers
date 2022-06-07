@@ -93,4 +93,26 @@ uni_clean %>%
 
 # i just want to make some pretty graphics
 
+# how do we filter the names ???
 
+library(tokenizers)
+
+
+nlp_practice <- data.frame(matrix(unlist(uni_clean$select_inverstors), 
+                                  nrow=length(uni_clean$select_inverstors), 
+                                  byrow=TRUE),
+                           stringsAsFactors=FALSE) %>%
+  setNames(nm = "select_inverstors") %>%
+  mutate(across(everything(), ~as.character(.))) %>% 
+  unnest_tokens(word, select_inverstors) %>%
+  filter(!(word %in% c("capital", "ventures", "venture", "partners",
+                       "partner", "group", "inc", "fund", "investment",
+                       "management", "mgmt", "equity", "asset", "strategic",
+                       "advisors", "to", "the", "corporation", "investors",
+                       "co", "technologies", "associates", "participacees",
+                       "technology", "development", "gloval", "holdings",
+                       "managemeny", "global", "financial", "company",
+                       "holding", "and", "endeavors", "finance",
+                       "invest", "I", "growth")
+                                 )) %>%
+  table()
