@@ -9,6 +9,8 @@ library(corrplot)
 library(stringr)
 library(lubridate)
 
+load('data/processed/uni_clean.rda')
+
 # analysis bitchez !!!!!
 
 # we are gonna start w/ some correlation matrix mayhem

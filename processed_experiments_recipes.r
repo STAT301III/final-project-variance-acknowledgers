@@ -148,7 +148,7 @@ save(exp_1_folds, file = "data/processed/exp_1_folds.rda")
 recipe_no_nlp <- recipe(valuation ~ ., data = exp_1_train) %>% 
   step_rm(company, portfolio_exits) %>% 
   step_novel() %>% 
-  step_dummy(all_nominal_predictors(), one_hot = TRUE) %>% 
+  step_dummy(all_nominal_predictors()) %>% 
   step_normalize(all_numeric_predictors())
 
 save(recipe_no_nlp, file = "recipes/recipe_no_nlp.rds")
