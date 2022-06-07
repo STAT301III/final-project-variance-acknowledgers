@@ -21,14 +21,13 @@ load(file = "recipes/recipe_no_nlp.rds")
 prep <- prep(recipe_no_nlp, exp_1_train)
 bake <- bake(prep, exp_1_train)
 
+sum(is.na(bake))
+
 # 367
 
 # random forest model
 rf_model <- 
-  rand_forest(mode = "regression", 
-              mtry = tune(), 
-              min_n = tune(),
-              trees = tune()) %>%
+  rand_forest(mode = "regression") %>%
   set_engine("ranger")
 
 # set up workflow
@@ -43,9 +42,12 @@ rf_params <- parameters(rf_model) %>%
 
 rf_grid <- grid_regular(rf_params, levels = 3)
 
+control <- control_resamples(save_pred = TRUE)
+
 # tuning rf
+
+
 rf_tuned <- rf_wf %>% 
   tune_grid(exp_1_folds, grid = rf_grid
   )
-
 
