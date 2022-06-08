@@ -80,7 +80,7 @@ exp_1_split <- initial_split(uni_clean, prop = .8, strata = valuation)
 exp_1_train <- training(exp_1_split) 
 exp_1_test <- testing(exp_1_split)
 
-exp_1_folds <- vfold_cv(exp_1_train, strata = valuation, v = 2, r = 5)
+exp_1_folds <- vfold_cv(exp_1_train, strata = valuation, v = 2, r = 10)
 
 save(exp_1_train, file = "data/processed/exp_1_train.rda")
 save(exp_1_test, file = "data/processed/exp_1_test.rda")
@@ -88,7 +88,7 @@ save(exp_1_folds, file = "data/processed/exp_1_folds.rda")
 
 
 # recipe with no natural language processing
-recipe_no_nlp <- recipe(valuation ~ city + country + date_joined + founded_year +
+recipe_no_nlp_1 <- recipe(valuation ~ city + country + date_joined + founded_year +
                           industry + founded_year + financial_stage + investor_count +
                           deal_terms + portfolio_exits, data = exp_1_train) %>% 
   step_novel(all_nominal_predictors()) %>%
@@ -97,12 +97,12 @@ recipe_no_nlp <- recipe(valuation ~ city + country + date_joined + founded_year 
   step_zv(all_predictors()) %>% 
   step_normalize(all_numeric_predictors())
 
-save(recipe_no_nlp, file = "recipes/recipe_no_nlp_exp_1.rds")
+save(recipe_no_nlp_1, file = "recipes/recipe_no_nlp_exp_1.rds")
 
 
 
 # recipe with natural language processing
-recipe_nlp <- recipe(valuation ~ .
+recipe_nlp_1 <- recipe(valuation ~ .
                      , data = exp_1_train) %>% 
   step_rm(company, portfolio_exits) %>% 
   step_novel(all_nominal_predictors()) %>%
@@ -111,7 +111,7 @@ recipe_nlp <- recipe(valuation ~ .
   step_zv(all_predictors()) %>% 
   step_normalize(all_numeric_predictors())
 
-save(recipe_nlp, file = "recipes/recipe_nlp_exp_1.rds")
+save(recipe_nlp_1, file = "recipes/recipe_nlp_exp_1.rds")
 
 # 2.) Predicting financial stage; could be interesting to see if we can get 
 ## meaningful predictions given the imbalancedness of the dataset
@@ -119,7 +119,7 @@ save(recipe_nlp, file = "recipes/recipe_nlp_exp_1.rds")
 ## experiment type: classification, potential models: logit, rf, boosted tree, NN
 ## metric: precision, recall, f1_meas (accuracy not useful here)
 
-recipe_no_nlp <- recipe(financial_stage ~ city + country + date_joined + founded_year +
+recipe_no_nlp_2 <- recipe(financial_stage ~ city + country + date_joined + founded_year +
                           industry + founded_year + valuation + investor_count +
                           deal_terms + portfolio_exits, data = exp_1_train) %>% 
   step_novel(all_nominal_predictors()) %>%
@@ -128,10 +128,10 @@ recipe_no_nlp <- recipe(financial_stage ~ city + country + date_joined + founded
   step_zv(all_predictors()) %>% 
   step_normalize(all_numeric_predictors())
 
-save(recipe_no_nlp, file = "recipes/recipe_no_nlp_exp_2.rds")
+save(recipe_no_nlp_2, file = "recipes/recipe_no_nlp_exp_2.rds")
 
 # recipe with natural language processing
-recipe_nlp <- recipe(financial_stage ~ .
+recipe_nlp_2 <- recipe(financial_stage ~ .
                      , data = exp_1_train) %>% 
   step_rm(company, portfolio_exits) %>% 
   step_novel(all_nominal_predictors()) %>%
@@ -140,7 +140,7 @@ recipe_nlp <- recipe(financial_stage ~ .
   step_zv(all_predictors()) %>% 
   step_normalize(all_numeric_predictors())
 
-save(recipe_nlp, file = "recipes/recipe_nlp_exp_2.rds")
+save(recipe_nlp_2, file = "recipes/recipe_nlp_exp_2.rds")
 
 # 3.) Predicting investor count; NLP will be interesting here, see if certain big_name 
 ## investors have the ability to bring in other investors. Two types of potential models:
@@ -149,7 +149,7 @@ save(recipe_nlp, file = "recipes/recipe_nlp_exp_2.rds")
 ## experiment type: regression, potential models: NN or boosted tree
 ## see which is more predictive using RMSE
 
-recipe_no_nlp <- recipe(investor_count ~ city + country + date_joined + founded_year +
+recipe_no_nlp_3 <- recipe(investor_count ~ city + country + date_joined + founded_year +
                           industry + founded_year + valuation + financial_stage +
                           deal_terms + portfolio_exits, data = exp_1_train) %>% 
   step_novel(all_nominal_predictors()) %>%
@@ -158,12 +158,12 @@ recipe_no_nlp <- recipe(investor_count ~ city + country + date_joined + founded_
   step_zv(all_predictors()) %>% 
   step_normalize(all_numeric_predictors())
 
-save(recipe_no_nlp, file = "recipes/recipe_no_nlp_exp_3.rds")
+save(recipe_no_nlp_3, file = "recipes/recipe_no_nlp_exp_3.rds")
 
 
 
 # recipe with natural language processing
-recipe_nlp <- recipe(investor_count ~ .
+recipe_nlp_3 <- recipe(investor_count ~ .
                      , data = exp_1_train) %>% 
   step_rm(company, portfolio_exits) %>% 
   step_novel(all_nominal_predictors()) %>%
@@ -172,4 +172,4 @@ recipe_nlp <- recipe(investor_count ~ .
   step_zv(all_predictors()) %>% 
   step_normalize(all_numeric_predictors())
 
-save(recipe_no_nlp, file = "recipes/recipe_nlp_exp_3.rds")
+save(recipe_no_nlp_3, file = "recipes/recipe_nlp_exp_3.rds")
