@@ -86,63 +86,46 @@ yardstick::mape(bind_cols(exp_1_test$valuation, predict(lin_reg_results_no_nlp_1
 bind_cols(exp_1_test$financial_stage, predict(boost_results_nlp_2, new_data = exp_1_test))
 #Experiment 2:
 ###Boost w/ NLP
-yardstick::accuracy(bind_cols(as.factor(exp_1_test$financial_stage), predict(boost_results_nlp_2, new_data = exp_1_test)) %>% 
+yardstick::accuracy(bind_cols(factor(exp_1_test$financial_stage, levels = c('Acq', 'Acquired', 'Asset', 'Corporate', 'Divestiture', 'IPO', 'Management', 'None', 'Reverse')), predict(boost_results_nlp_2, new_data = exp_1_test)) %>% 
                   rename("truth" = "...1") %>% rename("predicted" = ".pred_class"), truth, predicted)
 
-yardstick::mape(bind_cols(exp_1_test$valuation, predict(boost_results_nlp_1, new_data = exp_1_test)) %>% 
-                  rename("truth" = "...1") %>% rename("predicted" = ".pred"), truth, predicted)
-# RMSE: $3,472,410,017
-# MAPE: 83.7%
+yardstick::f_meas(bind_cols(factor(exp_1_test$financial_stage, levels = c('Acq', 'Acquired', 'Asset', 'Corporate', 'Divestiture', 'IPO', 'Management', 'None', 'Reverse')), predict(boost_results_nlp_2, new_data = exp_1_test)) %>% 
+                      rename("truth" = "...1") %>% rename("predicted" = ".pred_class"), truth, predicted)
+# Accuracy: 95.2%
+# f_meas: 97.5%
 
 ###Boost w/o NLP
-yardstick::rmse(bind_cols(exp_1_test$valuation, predict(boost_results_no_nlp_1, new_data = exp_1_test)) %>% 
-                  rename("truth" = "...1") %>% rename("predicted" = ".pred"), truth, predicted)
+yardstick::accuracy(bind_cols(factor(exp_1_test$financial_stage, levels = c('Acq', 'Acquired', 'Asset', 'Corporate', 'Divestiture', 'IPO', 'Management', 'None', 'Reverse')),
+                              predict(boost_results_no_nlp_2, new_data = exp_1_test)) %>% 
+                      rename("truth" = "...1") %>% rename("predicted" = ".pred_class"), truth, predicted)
 
-yardstick::mape(bind_cols(exp_1_test$valuation, predict(boost_results_no_nlp_1, new_data = exp_1_test)) %>% 
-                  rename("truth" = "...1") %>% rename("predicted" = ".pred"), truth, predicted)
-# RMSE: $3,614,239,982
-# MAPE: 97.2%
+yardstick::f_meas(bind_cols(factor(exp_1_test$financial_stage, levels = c('Acq', 'Acquired', 'Asset', 'Corporate', 'Divestiture', 'IPO', 'Management', 'None', 'Reverse')),
+                            predict(boost_results_no_nlp_2, new_data = exp_1_test)) %>% 
+                    rename("truth" = "...1") %>% rename("predicted" = ".pred_class"), truth, predicted)
+# Accuracy: 97.1%
+# f_meas: 48.6%
 
 ###RF w/ NLP
-yardstick::rmse(bind_cols(exp_1_test$valuation, predict(rf_results_nlp_1, new_data = exp_1_test)) %>% 
-                  rename("truth" = "...1") %>% rename("predicted" = ".pred"), truth, predicted)
+yardstick::accuracy(bind_cols(factor(exp_1_test$financial_stage, levels = c('Acq', 'Acquired', 'Asset', 'Corporate', 'Divestiture', 'IPO', 'Management', 'None', 'Reverse')),
+                              predict(rf_results_nlp_2, new_data = exp_1_test)) %>% 
+                      rename("truth" = "...1") %>% rename("predicted" = ".pred_class"), truth, predicted)
 
-yardstick::mape(bind_cols(exp_1_test$valuation, predict(rf_results_nlp_1, new_data = exp_1_test)) %>% 
-                  rename("truth" = "...1") %>% rename("predicted" = ".pred"), truth, predicted)
-# RMSE: $3,209,664,368
-# MAPE: 57.8%
+yardstick::f_meas(bind_cols(factor(exp_1_test$financial_stage, levels = c('Acq', 'Acquired', 'Asset', 'Corporate', 'Divestiture', 'IPO', 'Management', 'None', 'Reverse')),
+                            predict(rf_results_nlp_2, new_data = exp_1_test)) %>% 
+                    rename("truth" = "...1") %>% rename("predicted" = ".pred_class"), truth, predicted)
+# Accuracy: 95.2%
+# f_meas: 97.5%
 
 ###RF w/o NLP
-yardstick::rmse(bind_cols(exp_1_test$valuation, predict(rf_results_no_nlp_1, new_data = exp_1_test)) %>% 
-                  rename("truth" = "...1") %>% rename("predicted" = ".pred"), truth, predicted)
+yardstick::accuracy(bind_cols(factor(exp_1_test$financial_stage, levels = c('Acq', 'Acquired', 'Asset', 'Corporate', 'Divestiture', 'IPO', 'Management', 'None', 'Reverse')),
+                              predict(rf_results_no_nlp_2, new_data = exp_1_test)) %>% 
+                      rename("truth" = "...1") %>% rename("predicted" = ".pred_class"), truth, predicted)
 
-yardstick::mape(bind_cols(exp_1_test$valuation, predict(rf_results_no_nlp_1, new_data = exp_1_test)) %>% 
-                  rename("truth" = "...1") %>% rename("predicted" = ".pred"), truth, predicted)
-# RMSE: $3,747,265,148
-# MAPE: 76.2%
-
-###Linear Regression w/ NLP
-yardstick::rmse(bind_cols(exp_1_test$valuation, predict(lin_reg_results_nlp_1, new_data = exp_1_test)) %>% 
-                  rename("truth" = "...1") %>% rename("predicted" = ".pred"), truth, predicted)
-
-yardstick::mape(bind_cols(exp_1_test$valuation, predict(lin_reg_results_nlp_1, new_data = exp_1_test)) %>% 
-                  rename("truth" = "...1") %>% rename("predicted" = ".pred"), truth, predicted)
-# RMSE: $5,390,591,068
-# MAPE: 193%
-
-###Linear Regression w/o NLP
-yardstick::rmse(bind_cols(exp_1_test$valuation, predict(lin_reg_results_no_nlp_1, new_data = exp_1_test)) %>% 
-                  rename("truth" = "...1") %>% rename("predicted" = ".pred"), truth, predicted)
-
-yardstick::mape(bind_cols(exp_1_test$valuation, predict(lin_reg_results_no_nlp_1, new_data = exp_1_test)) %>% 
-                  rename("truth" = "...1") %>% rename("predicted" = ".pred"), truth, predicted)
-# RMSE: $4,413,169,368
-# MAPE: 160%
-
-
-
-
-
+yardstick::f_meas(bind_cols(factor(exp_1_test$financial_stage, levels = c('Acq', 'Acquired', 'Asset', 'Corporate', 'Divestiture', 'IPO', 'Management', 'None', 'Reverse')),
+                            predict(rf_results_no_nlp_2, new_data = exp_1_test)) %>% 
+                    rename("truth" = "...1") %>% rename("predicted" = ".pred_class"), truth, predicted)
+# Accuracy: 97.1%
+# f_meas: 55.6%
 
 
 #############################################################################################################
@@ -205,5 +188,15 @@ yardstick::mape(bind_cols(exp_1_test$investor_count, predict(lin_reg_results_no_
 # MAPE: 77.6%
 
 
+###########################################################################################
+
+
+#Now let's put that data into tables and export them for usage in the final report. 
+
+exp_1_table <- tibble("Model Type" = c("Random Forest", "Random Forest", "xgboost", "xgboost", "Linear Regression", "Linear Regression"),
+                      "Uses NLP?" = c("Yes", "No", "Yes", "No", "Yes", "No"),
+                      "Root Mean Squared Error" = c("$3,209,664,368", "$3,747,265,148", "$3,472,410,017",
+                                                    "$3,614,239,982", "$5,390,591,068", "$4,413,169,368"),
+                      "Mean Absolute Percent Error" = c("57.8%", "76.2%", "83.7%", "97.2%", "193%", "160%"))
 
 
