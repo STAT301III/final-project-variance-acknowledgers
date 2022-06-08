@@ -25,6 +25,7 @@ load("recipes/recipe_no_nlp_exp_1.rds")
 load("recipes/recipe_no_nlp_exp_2.rds")
 load("recipes/recipe_no_nlp_exp_3.rds")
 
+              #CHANGE#
 prep <- prep(recipe_no_nlp_2, exp_1_train)
 bake <- bake(prep, exp_1_train)
 
@@ -41,6 +42,7 @@ rf_model <-
 rf_wf <-
   workflow() %>% 
   add_model(rf_model) %>%
+              #CHANGE#
   add_recipe(recipe_no_nlp_2)
 
 # create grid
@@ -54,11 +56,26 @@ control <- control_resamples(save_pred = TRUE)
 # tuning rf
 
 
-rf_tuned_no_nlp_2 <- rf_wf %>% 
+rf_tuned <- rf_wf %>% 
   tune_grid(exp_1_folds, grid = rf_grid)
 
-#Save each object
-save(rf_tuned_no_nlp_2, file = 'fit models/rf_tuned_no_nlp_2.rda')
 
+rf_wf_tuned <- rf_wf %>%
+  finalize_workflow(select_best(rf_tuned))
+
+  #CHANGE#
+rf_results_no_nlp_2 <- fit(rf_wf_tuned, exp_1_train)
+
+#Save each object
+      #CHANGE#                    #CHANGE#
+save(rf_results_no_nlp_2, file = 'fit models/rf_tuned_no_nlp_2.rda')
+
+
+#1 No X
+#1 NLP X
+#2 No X
+#2 NLP X
+#3 No X
+#3 NLP X
 
 
