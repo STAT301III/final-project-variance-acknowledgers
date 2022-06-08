@@ -9,6 +9,16 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r, message = FALSE, echo = FALSE}
+library(tidyverse)
+library(tidymodels)
+library(skimr)
+library(janitor)
+library(hutils)
+
+tidymodels_prefer()
+```
+
 # Initial EDA
 
 ## Introduction
@@ -35,8 +45,8 @@ skim_without_charts(uni)
 
 Here, we can see that there is no missingness in the data at all, but upon inspecting the data that is because any missing values contain a character "None" in lieu of an NA.
 
-## Data Cleaning Process
-```{r}
+## Data Cleaning/Preprocessing
+```{r, message = FALSE, warning = FALSE}
 #Let's first turn the numerical columns that are currently characters to numerical:
 uni_clean <- uni %>%
   mutate(valuation = as.numeric(extract_numeric(Valuation...B.)) * 1000000000,
@@ -45,45 +55,40 @@ uni_clean <- uni %>%
          deal_terms = extract_numeric(Deal.Terms),
          portfolio_exits = extract_numeric(Portfolio.Exits),
          total_raised = extract_numeric(Total.Raised) * 1000000000,
-         ) %>% 
+         Select.Inverstors = str_split(Select.Inverstors, ", ")
+  ) %>%
+  unnest(cols = c(Select.Inverstors)) %>% 
   select(-c(Date.Joined, Investors.Count, Valuation...B., Deal.Terms, Portfolio.Exits, Total.Raised)) %>%
   clean_names()
 
-# taking investors out, then pivoting wider//onehotting
-uni_clean <-
-  uni_clean %>% 
-  mutate(select_inverstors = str_replace(select_inverstors, ",", "|"),
-         select_inverstors = str_replace(select_inverstors, ",", "|"),
-         select_inverstors = str_replace(select_inverstors, ",", "|"),
-         select_inverstors = str_replace(select_inverstors, ",", "|"),
-         select_inverstors = str_remove_all(select_inverstors, ' '),
-         select_inverstors = str_to_lower(select_inverstors)) %>% 
-  separate_rows(select_inverstors, sep = "\\|")
+# put in dummy column
+uni_clean <- data.frame(append(uni_clean, c(x1="1"), after=5))
 
-# checking counts of investors
-one_hot_investors <- uni_clean %>% 
-  group_by(select_inverstors) %>% 
-  summarise(counts = n()) %>% 
-  arrange(desc(counts)) %>% 
-  filter(counts > 5)
-
-uni_clean <- 
-  uni_clean %>% filter(select_inverstors %in% one_hot_investors$select_inverstors)
-
-# now pivot wider
-uni_clean <- uni_clean[-c(1063, 367), ]
+# pivot wide
 uni_clean <- uni_clean %>% 
-  mutate(value = 1) %>% 
-  spread(select_inverstors, value, fill = 0)
+  group_by(company, country, city, industry, founded_year, financial_stage, valuation, date_joined, investor_count, deal_terms, portfolio_exits, total_raised, select_inverstors) %>%
+  mutate(rn = row_number()) %>% 
+  pivot_wider(
+    names_from = select_inverstors,
+    values_from = x1
+  ) 
 
+# put in 0s
+uni_clean <- uni_clean %>% 
+  ungroup() %>% 
+  mutate_all(~replace(., is.na(.), 0)) %>% 
+  select(-rn) %>% 
+  clean_names()
 
-#With total raised, usually follows $100.4M type of structure but sometimes is None
+uni_clean_visual <- read_csv(file = "data/processed/uni_clean.csv")
 
-# function to fix data
-
+# remove investor columns w less than 10 dummys
+uni_clean <- bind_cols(uni_clean[1], uni_clean[-1] %>% select_if(funs(sum(. > 0) >= 10)))
 
 skim_without_charts(uni_clean)
 ```
+
+This is the main data preprocessing step, one that is crucial for this dataset. Given how unorganized the investors column was, the investor column was separated out into multiple rows, based on how many investors there actually were, and then recombined into one while being dummy coded. We also did not dummy code investors that did not invest in 10 or more companies as this would just add noise. All of the data that was inputted as characters was made into numbers as well. The skim that was performed on the dataset shows us that there are no missing values. Any NAs present in the data were converted to 0s.
 
 ## Essential Findings
 
@@ -100,14 +105,24 @@ Looking at the distribution of the valuation, we can see that the data is right 
 
 
 ```{r}
-ggplot (uni_clean) +
-  geom_histogram(aes(x = industry), stat = "count") +
-  coord_flip()
+# bar plot for industries
+uni_clean_visual %>% 
+  group_by(industry) %>%
+  count() %>%
+  filter(n > 20) %>%
+  ggplot(aes(x = reorder(industry, -n), y = n)) + 
+  geom_bar(stat = "identity", color = "red", fill = "orange") +
+  coord_flip() +
+  theme_minimal() +
+  labs(
+    x = "Industry", 
+    y = "Count"
+  ) 
 ```
 
-Looking at another potential response variable in industry, we see that internet software and services has the most observations. The second biggest we see is Fintech with other big industries including E-commerce, data management/analytics, cybersecurity, health, and AI. There is enough diversity in industries to conduct a thorough analysis. The majority of these are one off industries.
+Looking at another potential response variable in industry, we see that Fintech has the most observations. The second biggest we see is Interset software and services with other big industries including E-commerce, data management/analytics, cybersecurity, health, and AI. There is enough diversity in industries to conduct a thorough analysis. The majority of these are one off industries. Given this, we only showed industries on this graph with more than 20 observations. The rest are reflected in the other category.
 
-```{r}
+```{r, warning = FALSE}
 ggplot (uni_clean) +
   geom_histogram(aes(x = financial_stage), stat = "count") +
   coord_flip()
@@ -124,16 +139,26 @@ ggplot (uni_clean) +
 
 Looking at the distribution of investor count of these unicorn companies, there is a rightward skew and the data is centered around 12 investors. There are outliers that have investors of over 75. We hypothesize the number of investors to be important as it gives a look into how much attention the company has drawn and how mature it may be when it comes to the valuation. 
 
-```{r}
-ggplot (uni_clean) +
-  geom_histogram(aes(x = country), stat = "count") +
-  coord_flip()
+```{r, message = FALSE}
+uni_clean_visual %>% 
+  mutate(country = fct_lump(country %>% as.factor, n=5)) %>% 
+  group_by(country) %>%
+  count() %>%
+  ggplot(aes(x = "", y = n, fill = country)) + 
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  theme_minimal() +
+  coord_polar(theta = "y") +
+  labs(
+    x = NULL,
+    y = NULL
+  )
 ```
 
-We look at the countries of each of these companies to understand if there could be a relationship between countries and a response variable like valuation. We can see that the US has an overwhelming majority of these unicorn companies with China a distant second. It gives an insight as to which contries it may be more likely that a unicorn company appears. 
+We look at the countries of each of these companies to understand if there could be a relationship between countries and a response variable like valuation. We can see that the US has an overwhelming majority of these unicorn companies with China a distant second. It gives an insight as to which countries it may be more likely that a unicorn company appears. This pie chart shows how these companies are distributed and it makes sense with our own intuition, given the startups that we know to be successful tend to be from China or the US. Companies like Bytedance or Fanatics all come to mind when thinking about big time unicorn companies.
 
 
-```{r}
+```{r, warning = FALSE}
 ggplot (uni_clean) +
   geom_histogram(aes(x = founded_year), stat = "count") +
   coord_flip()
@@ -146,7 +171,7 @@ First off, there is a leftward skew in this data but it is distributed normally 
 
 #### Response Variable and Predictor Variable Relationships
 
-```{r}
+```{r, message = FALSE}
 ggplot (uni_clean, aes(x = investor_count, y = valuation)) +
   geom_point() +
   geom_smooth(method ='lm')
@@ -154,7 +179,7 @@ ggplot (uni_clean, aes(x = investor_count, y = valuation)) +
 
 Looking at the graph between investor count and valuation, there appears to be a slightly positive correlation between the two variables. There definitely are outliers but most of the data is clustered in the third quadrant, where investors are below 50 and valuation just above 1 billion. 
 
-```{r}
+```{r, message = FALSE}
 ggplot (uni_clean, aes(x = total_raised, y = valuation)) +
   geom_point() +
   geom_smooth(method ='lm')
@@ -188,7 +213,7 @@ This analysis is in line with the country univariate analysis. The US has the hi
 
 #### Relationships among predictor variables
 
-```{r}
+```{r, message = FALSE}
 ggplot (uni_clean, aes(x = investor_count, y = total_raised)) +
   geom_point() +
   geom_smooth(method ='lm')
@@ -196,7 +221,7 @@ ggplot (uni_clean, aes(x = investor_count, y = total_raised)) +
 
 There is really no relationship between the number of investors in a company and the total amount raised. We see a very slight positive correlation and this can probably be attributed to the fact that a single investment entity can make a massive investment compared to others.
 
-```{r}
+```{r, message = FALSE}
 ggplot (uni_clean, aes(x = deal_terms, y = total_raised)) +
   geom_point() +
   geom_smooth(method ='lm')
@@ -206,7 +231,7 @@ We see that there is a lack of a relationship between the number of deal terms a
 
 ```{r}
 ggplot(uni_clean, aes(x = industry, fill = country)) + 
-  geom_bar(position = "stack")
+  geom_bar(position = "stack") 
 ```
 
 When using this stacked bar graph to analyze categorical variables of industry and country, we see that in both fintech and internet services the US takes up a big fraction of the companies. Going forward when doing analysis, we will have to eliminate some of the smaller companies and possibly create a threshold for the countries we analyze as it is hard to see relationships with so many countries.
@@ -232,3 +257,52 @@ With NLP, it is important for us to consider our method of tokenization, which i
 Since our target variable is a company's valuation, it is crucial that we treat the investors variable intentionally. From general knowledge, we know there is a correlation between which investors decide a company is worth devoting resources to and the eventual success of a company. That is, experienced investors likely know the criteria for a likely successful company and decide to invest based on their in-house standards.
 
 Upon our initial look at the data, we noticed that certain funds of the same name were categorized as different investor groups because of small syntactical differences. To address this, some form of NLP is necessary.
+
+
+## Recipe Creation
+```{r, eval = FALSE}
+# recipe with no natural language processing
+recipe_no_nlp <- recipe(valuation ~ ., data = exp_1_train) %>% 
+  step_rm(company, portfolio_exits) %>% 
+  step_novel() %>% 
+  step_dummy(all_nominal_predictors()) %>% 
+  step_normalize(all_numeric_predictors())
+
+# recipe with NLP
+recipe_no_nlp <- recipe(valuation ~ ., data = exp_1_train) %>% 
+  step_rm(company, portfolio_exits) %>% 
+  step_dummy(all_nominal_predictors()) %>% 
+  step_normalize(all_numeric_predictors())
+
+```
+
+We created a recipe for an NLP and non NLP model. In order to prepare for the feature engineering process, as mentioned earlier, all of the investors were dummy coded. This is important to do as there are going to be investment firms that consistently make better investments than other companies. This was done for the investment companies that invested in at least 10 different unicorn companies in the dataset. On top of this, in both the NLP and non NLP recipes, all of the other categorical variables were dummy coded and normalized. We determined from our EDA that the number of portfolio exits was not significant either so that feature was removed.
+
+## Data Splitting
+```{r}
+set.seed(3013)
+exp_1_split <- initial_split(uni_clean, strata = valuation)
+exp_1_train <- training(exp_1_split) 
+exp_1_test <- testing(exp_1_split)
+
+exp_1_folds <- vfold_cv(exp_1_train, strata = valuation, v = 5)
+```
+
+
+
+WRITE HERE
+
+
+## Model Fitting
+
+
+WRITE HERE
+
+
+
+
+
+
+
+
+

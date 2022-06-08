@@ -58,6 +58,8 @@ uni_clean <- uni_clean %>%
 # remove investor columns w less than 10 dummys
 uni_clean <- bind_cols(uni_clean[1], uni_clean[-1] %>% select_if(funs(sum(. > 0) >= 10)))
 
+write_csv(uni_clean, file = "data/processed/uni_clean.csv")
+
 # EDA for filtering investors
 uni_clean_2 <- uni %>%
   mutate(valuation = as.numeric(extract_numeric(Valuation...B.)) * 1000000000,
