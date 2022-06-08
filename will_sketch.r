@@ -5,7 +5,6 @@ check <- uni_clean_2 %>%
     select_inverstors = tolower(select_inverstors),
     select_inverstors = str_replace(select_inverstors, pattern = '^[ \t]+', ''),
     select_inverstors = str_replace(select_inverstors, pattern = '[ \t]+$', ''),
-    
   ) %>% 
   group_by(select_inverstors) %>% 
   summarise(
