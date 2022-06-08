@@ -8,6 +8,7 @@ library(janitor)
 library(corrplot)
 library(stringr)
 library(lubridate)
+library(tidytext)
 
 load('data/processed/uni_clean.rda')
 

@@ -1,6 +1,7 @@
 # packages
 library(tidyverse)
 library(hutils)
+library(ggplot2)
 
 uni_clean_visual <- read_csv(file = "data/processed/uni_clean.csv")
 
@@ -41,5 +42,8 @@ uni_clean_visual %>%
   labs(
     x = NULL,
     y = NULL
-  )
+  ) +
+  theme(panel.grid.major = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank())
 
