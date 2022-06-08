@@ -26,7 +26,8 @@ load("recipes/recipe_nlp_exp_3.rds")
 load("recipes/recipe_no_nlp_exp_1.rds")
 load("recipes/recipe_no_nlp_exp_3.rds")
 
-prep <- prep(recipe_no_nlp_1, exp_1_train)
+              #CHANGE#
+prep <- prep(recipe_nlp_1, exp_1_train)
 bake <- bake(prep, exp_1_train)
 
 sum(is.na(bake))
@@ -42,7 +43,8 @@ lin_reg_model <- linear_reg(mode = "regression",
 lin_reg_wf <-
   workflow() %>% 
   add_model(lin_reg_model) %>%
-  add_recipe(recipe_no_nlp_1)
+              #CHANGE#
+  add_recipe(recipe_nlp_1)
 
 # create grid
 lin_reg_params <- hardhat::extract_parameter_set_dials(lin_reg_model)
@@ -53,12 +55,21 @@ control <- control_resamples(save_pred = TRUE)
 
 # tuning lin reg
 
-
-lin_reg_tuned_no_nlp_1 <- lin_reg_wf %>% 
+lin_reg_tuned <- lin_reg_wf %>% 
   tune_grid(exp_1_folds, grid = lin_reg_grid)
 
+lin_reg_wf_tuned <- lin_reg_wf %>%
+  finalize_workflow(select_best(lin_reg_tuned))
+
+  #CHANGE#
+lin_reg_results_nlp_1 <- fit(lin_reg_wf_tuned, exp_1_train)
+
 #Save each object
-save(lin_reg_tuned_no_nlp_1, file = 'fit models/lin_reg_tuned_no_nlp_1.rda')
+          #CHANGE#                                  #CHANGE#
+save(lin_reg_results_nlp_1, file = 'fit models/lin_reg_tuned_nlp_1.rda')
 
 
-
+#1 no X
+#1 NLP
+#3 No X
+#3 NLP X
