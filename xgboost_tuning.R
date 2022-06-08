@@ -26,13 +26,14 @@ load("recipes/recipe_no_nlp_exp_1.rds")
 load("recipes/recipe_no_nlp_exp_2.rds")
 load("recipes/recipe_no_nlp_exp_3.rds")
 
-prep <- prep(recipe_nlp_2, exp_1_train)
+              #CHANGE#
+prep <- prep(recipe_no_nlp_2, exp_1_train)
 bake <- bake(prep, exp_1_train)
 
 sum(is.na(bake))
 
 
-# random forest model
+# boosted tree model
 boost_model <- 
   boost_tree(mode = "classification", 
              mtry = tune(),
@@ -43,7 +44,8 @@ boost_model <-
 boost_wf <-
   workflow() %>% 
   add_model(boost_model) %>%
-  add_recipe(recipe_nlp_2)
+              #CHANGE#
+  add_recipe(recipe_no_nlp_2)
 
 # create grid
 boost_params <- hardhat::extract_parameter_set_dials(boost_model) %>% 
@@ -55,11 +57,24 @@ control <- control_resamples(save_pred = TRUE)
 
 # tuning boost
 
-
-boost_tuned_nlp_2 <- boost_wf %>% 
+boost_tuned <- boost_wf %>% 
   tune_grid(exp_1_folds, grid = boost_grid)
 
+boost_wf_tuned <- boost_wf %>%
+  finalize_workflow(select_best(boost_tuned))
+
+#CHANGE#
+boost_results_no_nlp_2 <- fit(boost_wf_tuned, exp_1_train)
+
 #Save each object
-save(boost_tuned_nlp_2, file = 'fit models/boost_tuned_nlp_2.rda')
+      #CHANGE#                      #CHANGE#
+save(boost_results_no_nlp_2, file = 'fit models/boost_tuned_no_nlp_2.rda')
+
+#1 No X
+#1 NLP X
+#2 No X
+#2 NLP X
+#3 No X
+#3 NLP X
 
 
