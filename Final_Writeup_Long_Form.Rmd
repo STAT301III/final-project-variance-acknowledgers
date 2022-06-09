@@ -280,29 +280,70 @@ We created a recipe for an NLP and non NLP model. In order to prepare for the fe
 
 ## Data Splitting
 ```{r}
-set.seed(3013)
-exp_1_split <- initial_split(uni_clean, strata = valuation)
+set.seed(3013) 
+exp_1_split <- initial_split(uni_clean, prop = .8, strata = valuation)
 exp_1_train <- training(exp_1_split) 
 exp_1_test <- testing(exp_1_split)
 
-exp_1_folds <- vfold_cv(exp_1_train, strata = valuation, v = 5)
+exp_1_folds <- vfold_cv(exp_1_train, strata = valuation, v = 2, r = 10)
 ```
 
 
+To split our data, we chose an 80/20 split of training to testing data, something standard. We did not touch the testing set again until the evaluation of our models at the very end, and used only exp_1_train throughout the model fitting process. 
 
-WRITE HERE
+The v-folding process took a bit of finesse in order to make our model fitting work properly. As each of the investment firms ended up being dummy encoded, we ran into an issue with dimensionality. In addition, in our recipes, we dummy encoded all nominal variables, such as country. Once we baked our recipes, we noticed about 340 columns. The problem with this was that our training set only held 830 observations. As such, if we performed a v-fold with, say, five folds, each fold would have only 166 observations in it. With only 166 observations for 340 columns, many of them being rare, there was a good chance that we would end up with a lack of representation of certain dummy columns in our v folding process and many columns with zero variance. 
+
+To handle this, we decided to do a v-fold of only 2 folds, but 10 repeats. 2 folds would help remedy the aforementioned issue of how many dimensions we had, while compensating for the lost advantages of having more folds by having a high number of repeats. With this, we could begin initializing and fitting our models. 
 
 
 ## Model Fitting
 
+For our model fitting, we had a procedure for each of the experiments. Experiments 1 and 3, the regression problems, had the same process and model types. For each of these, we tried models of random forest, xgboost, and linear regression. For each of these models, we had two recipes (one with NLP and one without), and that resulted in six models total to fit. For the random forest, we used the ranger engine and tuned the mtry parameter. For xgboost we used the xgboost engine and tuned the mtry and min_n parameters. For the linear regression, we used the lm engine and tried to tune mixture and penalty parameters. 
 
-WRITE HERE
+Then, for our classification problem of experiment 2, we used random forest and xgboost as our model types, tuning the same parameters and using the same engines as stated above. This resulted in four models total, due to the two recipes. 
+
+Using our v fold cross validation, we were able to perform a grid hypertuning on our tuning parameters and then, after choosing the best performing parameter value models, we fit that to the training data, and stored all of the models in the fit models folder. 
+
+
+# Results
+
+
+Once we had all our models fit to the training set, it was finally time to break out the testing set and evaluate. For the regression experiments, we used the root mean squared error and the mean absolute percent error metrics. The reasoning behind this was that RMSE could give us a dollar amount value on the general error our models had, which is useful having it in the practical base units. However, dealing with values in the billions can be somewhat hard to interpret, so we also included mean absolute percent error so that we could tell what factor we were off by. 
+
+For the classification problem, we used the accuracy metric and the f measure Accuracy is very misleading for this experiment due to the extremely low proportion of values that are not None for financial stage, but we included it anyway because it still shows fluctuation between models and is somewhat of a base metric. For the F measure, this better demonstrates the model's ability to handle the non None values, as it includes things like false positives, which would punish always guessing None more than pure accuracy. 
 
 
 
+```{r, echo = FALSE}
+load('results/metric_tables.rda')
+```
 
 
+```{r}
+exp_1_table
+```
+Here, we can see the table we built to evaluate our models in experiment 1. The best performing model is the random forest using the recipe that included NLP. It had the lowest MAPE and RMSE. It is interesting to see that for the random forest without NLP and the xgboost with NLP, the random forest has a lower mean absolute percent error but a higher RMSE than both xgboost models. The difference here is the absolute metric versus the root squared metric. This tells us that the random forest without NLP had a harder time with extreme values than the xgboost models. The linear regression models performed the most poorly. One other takeaway is that for both random forest and xgboost, the NLP addition improved the models, while it made the linear regression worse. All in all, though, being off by $3 billion may seem like a lot, but due to the wide span of values in our dataset, this model is pretty good. 
 
+
+```{r}
+exp_2_table
+```
+
+Here, for our second experiment, we can see that including NLP appears to have helped quite a bit. However, I believe that the splitting of the training and testing data may have led to somewhat of an inaccurate measurement here, as many factors in the financial stage column appeared in one dataset but not the other. This may have led to a lack of false positives or false negatives that may have occurred if we could have an abundantly large dataset to test and train on. The similarity in outcomes for the RF and xgboost with NLP sort of points to a potential issue there with factor levels. However, this experiment is somewhat hard to evaluate due to the proportion makeup of the unique values of the financial stages. 
+
+
+```{r}
+exp_3_table
+```
+
+Finally, for experiment three, in trying to predict the number of investors, we found a tight performance amongst the models. Here, there is no distinct winner that won in all metrics. It would depend on your purpose of using this model and whether or not you care about accommodating extreme values very well, but your model of choice could be either random forest without NLP or xgboost using NLP. It is cool to see NLP existing in one best performing model but not the other. However, aside from the porrly performing linear regressions, there was a pretty consistent MAPE of about 65-70% and an RMSE of 8.5-9. This is pretty high quality and could be useful to predict financial things about a startup. One other thing that is interesting to note is that when doing grid search, the metric used was RMSE, so these models are generally going to be biased towards performing well in the RMSE category. 
+
+All in all, the models performed really well in all experiments, although it is hard to accurately assess experiment 2. It was also rewarding to see that NLP seemed to help the models perform better in more cases than not. 
+
+
+## Github Repo Link
+
+[https://github.com/STAT301III/final-project-variance-acknowledgers.git](https://github.com/STAT301III/final-project-variance-acknowledgers.git){target="_blank"}
 
 
 

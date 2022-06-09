@@ -199,4 +199,16 @@ exp_1_table <- tibble("Model Type" = c("Random Forest", "Random Forest", "xgboos
                                                     "$3,614,239,982", "$5,390,591,068", "$4,413,169,368"),
                       "Mean Absolute Percent Error" = c("57.8%", "76.2%", "83.7%", "97.2%", "193%", "160%"))
 
+exp_2_table <- tibble("Model Type" = c("Random Forest", "Random Forest", "xgboost", "xgboost"),
+                      "Uses NLP?" = c("Yes", "No", "Yes", "No"),
+                      "Accuracy (misleading)" = c("95.2%", "97.1%", "95.2%", "97.1%"),
+                      "F measure" = c("97.5%", "55.6%", "97.5%", "48.6%"))
+
+exp_3_table <- tibble("Model Type" = c("Random Forest", "Random Forest", "xgboost", "xgboost", "Linear Regression", "Linear Regression"),
+                                      "Uses NLP?" = c("Yes", "No", "Yes", "No", "Yes", "No"),
+                                      "Root Mean Squared Error" = c(8.92, 8.84, 8.53, 8.69, 9.52, 9.48),
+                                      "Mean Absolute Percent Error" = c("66.6%", "65.3%", "67.4%", "68.2%", "81.2%", "77.6%"))
+
+
+save(exp_1_table, exp_2_table, exp_3_table, file = 'results/metric_tables.rda')
 
