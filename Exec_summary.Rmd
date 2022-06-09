@@ -1,6 +1,6 @@
 ---
 title: "Executive Summary"
-author: "Louis Yang"
+author: "Louis Yang, Olivia Lee, Matthew Lorenz, and Will Cichowski"
 date: '2022-06-09'
 output: html_document
 ---
@@ -24,7 +24,7 @@ tidymodels_prefer()
 This executive summary will go through in a chronological order, important findings from each step of the process it took to build our model.
 
 ## Finding 1
-The need to possibly use NLP after performing an EDA. Given the large amount of text variables that we had, specifically with the investors variables, it was evident that we would need to use NLP. More specifically, there were small syntactical differences between what should have been categorized as the same investment group. Softbank Group was inputted as Softbank or Softbank Co. in some cases, hence thte need for NLP.
+The need to possibly use NLP after performing an EDA. Given the large amount of text variables that we had, specifically with the investors variables\, it was evident that we would need to use NLP. More specifically, there were small syntactical differences between what should have been categorized as the same investment group. Softbank Group was inputted as Softbank or Softbank Co. in some cases, hence thte need for NLP.
 
 ## Finding 2
 ```{r, message = FALSE, warning = FALSE, echo = FALSE}
@@ -87,7 +87,14 @@ uni_clean_visual %>%
   )
 ```
 
+## Finding 3
 
+After fitting all the models for each experiment (six for experiment 1, four for experiment 2, and 6 for experiment 3), we were able to evaluate our models against each other. We found that a random forest model using NLP worked the best to predict a company's valuation in experiment 1, with a root mean squared error of about $3.2 billion and an average percent error of 57.8%. For the second experiment, we found it was very difficult to accurately evaluate the model's performance due to the fact that most of the observation had a financial stage value of None. However, we found that xgboost and random forest both performed the best when using NLP. Finally, in experiment 3, when predicting the number of investors, we found the best performers to be a random forest without NLP and an xgboost with NLP, depending on which metric was used. The random forest achieved an RMSE of 8.92, while the xgboost achieved a mean absolute percent error of 65.3%. 
+
+
+## Finding 4
+
+Ultimately, more often than not, we found that the natural language processing we did was beneficial to the models. This was not always true. However, it seemed that our efforts in the preprocessing were worth it for the quality of our models. 
 
 
 
