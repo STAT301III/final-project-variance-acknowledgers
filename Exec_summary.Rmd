@@ -1,0 +1,93 @@
+---
+title: "Executive Summary"
+author: "Louis Yang"
+date: '2022-06-09'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = FALSE, echo = FALSE}
+library(tidyverse)
+library(tidymodels)
+library(skimr)
+library(janitor)
+library(hutils)
+
+tidymodels_prefer()
+```
+
+# Executive Summary
+
+This executive summary will go through in a chronological order, important findings from each step of the process it took to build our model.
+
+## Finding 1
+The need to possibly use NLP after performing an EDA. Given the large amount of text variables that we had, specifically with the investors variables, it was evident that we would need to use NLP. More specifically, there were small syntactical differences between what should have been categorized as the same investment group. Softbank Group was inputted as Softbank or Softbank Co. in some cases, hence thte need for NLP.
+
+## Finding 2
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
+uni <- read.csv('data/unprocessed/Unicorn_Companies.csv')
+
+#Let's first turn the numerical columns that are currently characters to numerical:
+uni_clean <- uni %>%
+  mutate(valuation = as.numeric(extract_numeric(Valuation...B.)) * 1000000000,
+         date_joined= extract_numeric(str_sub(Date.Joined, start= -4)),
+         investor_count = extract_numeric(Investors.Count),
+         deal_terms = extract_numeric(Deal.Terms),
+         portfolio_exits = extract_numeric(Portfolio.Exits),
+         total_raised = extract_numeric(Total.Raised) * 1000000000,
+         Select.Inverstors = str_split(Select.Inverstors, ", ")
+  ) %>%
+  unnest(cols = c(Select.Inverstors)) %>% 
+  select(-c(Date.Joined, Investors.Count, Valuation...B., Deal.Terms, Portfolio.Exits, Total.Raised)) %>%
+  clean_names()
+
+# put in dummy column
+uni_clean <- data.frame(append(uni_clean, c(x1="1"), after=5))
+
+# pivot wide
+uni_clean <- uni_clean %>% 
+  group_by(company, country, city, industry, founded_year, financial_stage, valuation, date_joined, investor_count, deal_terms, portfolio_exits, total_raised, select_inverstors) %>%
+  mutate(rn = row_number()) %>% 
+  pivot_wider(
+    names_from = select_inverstors,
+    values_from = x1
+  ) 
+
+# put in 0s
+uni_clean <- uni_clean %>% 
+  ungroup() %>% 
+  mutate_all(~replace(., is.na(.), 0)) %>% 
+  select(-rn) %>% 
+  clean_names()
+
+uni_clean_visual <- read_csv(file = "data/processed/uni_clean.csv")
+
+# remove investor columns w less than 10 dummys
+uni_clean <- bind_cols(uni_clean[1], uni_clean[-1] %>% select_if(funs(sum(. > 0) >= 10)))
+
+skim_without_charts(uni_clean)
+```
+
+```{r, message = FALSE}
+uni_clean_visual %>% 
+  mutate(country = fct_lump(country %>% as.factor, n=5)) %>% 
+  group_by(country) %>%
+  count() %>%
+  ggplot(aes(x = "", y = n, fill = country)) + 
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  theme_minimal() +
+  coord_polar(theta = "y") +
+  labs(
+    x = NULL,
+    y = NULL
+  )
+```
+
+
+
+
+
